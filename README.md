@@ -1,4 +1,4 @@
-# Universal LLM Training Data Engineering Framework
+# Building LLM: Frontier Foundation Model Pretraining & Data Engineering Platform
 
 A production-grade, distributed pipeline for curating, filtering, deduplicating, and sharding **15 to 20 Trillion tokens** of training data for frontier Large Language Models. 
 
@@ -13,7 +13,7 @@ Engineered for:
 ## Architecture Overview
 
 ```
-ai-training-data/
+building-llm/
 ├── configs/
 │   ├── data_mix_config.yaml       # Domain mixture weights across pretraining & annealing
 │   └── languages.json             # Top-30 world languages distribution targets
