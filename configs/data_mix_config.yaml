@@ -1,0 +1,54 @@
+# Data Mixture Curriculum Across Pre-training, Annealing, and SFT
+
+base_pretraining:
+  target_tokens_trillions: 14.0
+  max_seq_len: 8192
+  rope_theta: 10000
+  domain_weights:
+    curated_web: 0.42       # CommonCrawl filtered via FastText + fine classifiers
+    code_repositories: 0.25 # GitHub/GitLab permissive, documentation, RFCs
+    books_extended_prose: 0.13 # Literature, university monographs, textbooks
+    academic_papers_patents: 0.10 # ArXiv, PubMed Central, Europe PMC, USPTO
+    global_top30_languages: 0.08 # Proportional top 30 languages
+    synthetic_reasoning_seed: 0.02 # Formal logic, step-by-step proofs
+
+long_context_annealing_phase1:
+  target_tokens_billions: 500
+  max_seq_len: 32768
+  rope_theta: 100000
+  domain_weights:
+    long_books_monographs: 0.30
+    multi_file_code_modules: 0.30
+    long_academic_surveys: 0.20
+    multi_turn_conversations: 0.10
+    synthetic_needle_tasks: 0.10 # Synthetic NIAH & multi-key retrieval
+
+long_context_annealing_phase2:
+  target_tokens_billions: 300
+  max_seq_len: 131072
+  rope_theta: 1000000
+  domain_weights:
+    whole_repository_codebases: 0.40 # Topologically sorted full repos
+    legal_discovery_bundles: 0.20 # Comprehensive court cases & SEC filings
+    full_textbooks_surveys: 0.20
+    synthetic_multi_hop_cross_doc: 0.20
+
+long_context_annealing_phase3:
+  target_tokens_billions: 100
+  max_seq_len: 1048576
+  rope_theta: 10000000
+  ring_attention_enabled: true
+  domain_weights:
+    multi_repository_dependencies: 0.35
+    multi_day_agent_dialogues: 0.35
+    extended_scientific_archives: 0.15
+    extreme_needle_retrieval: 0.15
+
+supervised_fine_tuning:
+  target_samples: 2500000
+  categories:
+    agentic_tool_execution: 0.30 # Bash, python, git, file editor, web
+    swe_code_refactoring: 0.25 # End-to-end bug fix with tests
+    dense_stem_reasoning: 0.20 # Strict step-by-step math, logic proofs
+    world_humanities_multilingual: 0.15 # Philosophy, history, top-30 languages
+    safety_calibration_truthfulness: 0.10 # Refusals, epistemic calibration

@@ -1,0 +1,81 @@
+# AWS Ray Cluster Configuration for Multi-Instance LLM Data Engineering
+# Launch with: ray up deploy/ray_cluster_aws.yaml -y
+# Dashboard available at: http://<head-ip>:8265
+
+cluster_name: llm-data-ray-cluster
+
+max_workers: 64
+upscaling_speed: 1.0
+idle_timeout_minutes: 15
+
+provider:
+  type: aws
+  region: us-east-1
+  availability_zone: us-east-1a
+
+auth:
+  ssh_user: ubuntu
+
+available_node_types:
+  ray_head_default:
+    node_config:
+      InstanceType: m6i.4xlarge  # 16 vCPUs, 64 GB RAM (Coordinates GCS & Dashboard)
+      ImageId: ami-0c7217cdde317cfec  # Ubuntu 22.04 LTS Deep Learning Base AMI
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 500
+            VolumeType: gp3
+            Iops: 6000
+            Throughput: 500
+      IamInstanceProfile:
+        Name: RayClusterS3Role
+    resources:
+      CPU: 16
+      memory: 68719476736
+
+  ray_worker_compute:
+    min_workers: 4
+    max_workers: 64
+    node_config:
+      InstanceType: c6i.16xlarge  # 64 vCPUs, 128 GB RAM (Heavy filtering, tokenization & MinHash)
+      ImageId: ami-0c7217cdde317cfec
+      InstanceMarketOptions:
+        MarketType: spot  # Cost-effective spot instances for data preparation
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 300
+            VolumeType: gp3
+            Iops: 6000
+            Throughput: 500
+      IamInstanceProfile:
+        Name: RayClusterS3Role
+    resources:
+      CPU: 64
+      memory: 137438953472
+
+head_node_type: ray_head_default
+
+setup_commands:
+  # System tuning for 100Gbps network and high file descriptor limits
+  - sudo sysctl -w net.core.somaxconn=65535
+  - sudo sysctl -w fs.file-max=2097152
+  - sudo sysctl -w vm.max_map_count=1048576
+  - sudo sh -c "echo '* soft nofile 1048576' >> /etc/security/limits.conf"
+  - sudo sh -c "echo '* hard nofile 1048576' >> /etc/security/limits.conf"
+  # Install pip requirements
+  - pip install --upgrade pip
+  - pip install "ray[default,data]>=2.35.0" tokenizers trafilatura warcio boto3 botocore polars pyarrow numpy pyyaml
+
+head_setup_commands: []
+
+custom_commands: []
+
+head_start_ray_commands:
+  - ray stop --force
+  - ray start --head --port=6379 --dashboard-host=0.0.0.0 --dashboard-port=8265 --num-cpus=16
+
+worker_start_ray_commands:
+  - ray stop --force
+  - ray start --address=$RAY_HEAD_IP:6379 --num-cpus=64

@@ -1,0 +1,51 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pytest / Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Python virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# PyTorch Checkpoints and Model Weights (>100MB)
+*.pt
+*.pth
+*.bin
+*.idx
+*.ckpt
+*.safetensors
+data/checkpoints/
+data/distributed_shards/
+data/live_shards/
+data/multimodal_shards/
+data/rl_experience/
+
+# Log files and scratch
+*.log
+*.swp
+*.swo

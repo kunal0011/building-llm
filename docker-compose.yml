@@ -1,0 +1,95 @@
+services:
+  # -------------------------------------------------------------
+  # AWS S3 Emulator Service (Moto)
+  # Endpoint: http://localhost:4566
+  # Auto-creates s3://ai-data-raw and s3://ai-data-shards
+  # -------------------------------------------------------------
+  s3:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    container_name: dataforge-s3
+    restart: unless-stopped
+    ports:
+      - "4566:4566"
+    environment:
+      - PYTHONPATH=/workspace
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    command: python3 deploy/s3_service.py
+    volumes:
+      - .:/workspace
+
+  # -------------------------------------------------------------
+  # Distributed Ray Cluster (Head Node)
+  # Dashboard: http://localhost:8265 | GCS: 6379
+  # -------------------------------------------------------------
+  ray-head:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    container_name: dataforge-ray-head
+    restart: unless-stopped
+    ports:
+      - "8265:8265"
+      - "6379:6379"
+      - "10001:10001"
+    environment:
+      - RAY_OBJECT_STORE_ALLOW_SLOW_STORAGE=1
+      - PYTHONPATH=/workspace
+      - AWS_ENDPOINT_URL=http://s3:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --dashboard-port=8265 --block
+    volumes:
+      - .:/workspace
+
+  # -------------------------------------------------------------
+  # Distributed Ray Cluster (Worker Node)
+  # Connects to ray-head:6379 for parallel tokenization & filtering
+  # -------------------------------------------------------------
+  ray-worker:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    container_name: dataforge-ray-worker
+    restart: unless-stopped
+    depends_on:
+      - ray-head
+    environment:
+      - RAY_OBJECT_STORE_ALLOW_SLOW_STORAGE=1
+      - PYTHONPATH=/workspace
+      - AWS_ENDPOINT_URL=http://s3:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+    command: ray start --address=ray-head:6379 --block
+    volumes:
+      - .:/workspace
+
+  # -------------------------------------------------------------
+  # Visual Pipeline Dashboard & Telemetry Server
+  # Interface URL: http://localhost:3000
+  # -------------------------------------------------------------
+  visualizer:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    container_name: dataforge-visualizer
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - s3
+      - ray-head
+    environment:
+      - PYTHONPATH=/workspace
+      - AWS_ENDPOINT_URL=http://s3:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+    command: python3 web/server.py
+    volumes:
+      - .:/workspace

@@ -1,0 +1,22 @@
+{
+  "model_type": "universal_moe_foundation_decoder",
+  "architectures": ["UniversalMoEForCausalLM"],
+  "vocab_size": 128000,
+  "hidden_size": 2048,
+  "intermediate_size": 5632,
+  "num_hidden_layers": 16,
+  "num_attention_heads": 16,
+  "num_key_value_heads": 4,
+  "num_routed_experts": 16,
+  "num_shared_experts": 2,
+  "top_k_experts": 4,
+  "routed_intermediate_size": 1408,
+  "shared_intermediate_size": 2816,
+  "aux_loss_alpha": 0.01,
+  "max_position_embeddings": 8192,
+  "rope_theta": 500000.0,
+  "rms_norm_eps": 1e-05,
+  "initializer_range": 0.02,
+  "tie_word_embeddings": false,
+  "precision": "bfloat16"
+}

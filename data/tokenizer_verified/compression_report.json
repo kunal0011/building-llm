@@ -1,0 +1,27 @@
+{
+  "english_prose": {
+    "bytes": 69,
+    "tokens": 31,
+    "bytes_per_token": 2.23
+  },
+  "python_code": {
+    "bytes": 77,
+    "tokens": 45,
+    "bytes_per_token": 1.71
+  },
+  "multilingual_zh": {
+    "bytes": 69,
+    "tokens": 26,
+    "bytes_per_token": 2.65
+  },
+  "multilingual_hi": {
+    "bytes": 167,
+    "tokens": 33,
+    "bytes_per_token": 5.06
+  },
+  "swe_agent_trace": {
+    "bytes": 91,
+    "tokens": 29,
+    "bytes_per_token": 3.14
+  }
+}
